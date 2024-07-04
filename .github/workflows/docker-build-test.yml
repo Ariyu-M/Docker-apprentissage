@@ -19,17 +19,16 @@ jobs:
     - name: Build Docker image
       run: docker build -t myapp .
 
-    - name: Test Docker image
-      run: |
-        docker run -p 3000:3000 myapp
-      timeout-minutes: 1
-
-    - name: Run container and check if it's running
+    - name: Run container
       run: docker run -d --name myapp -p 3000:3000 myapp
-      timeout-minutes: 1  
 
     - name: Check if container is running
       run: docker ps | grep myapp
+
+    - name: Test application
+      run: |
+        sleep 10  # Wait a bit for the application to start
+        curl --fail http://localhost:3000 || exit 1
 
     - name: Stop and remove the container
       run: docker stop myapp && docker rm myapp
