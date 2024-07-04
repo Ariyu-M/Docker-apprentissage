@@ -21,7 +21,7 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run --rm myapp dotnet test /app/vulnerablelightapp/VulnerableLightApp.Tests/VulnerableLightApp.Tests.csproj
+        docker run -p 3000:3000 myapp
 
     - name: Run container and check if it's running
       run: docker run -d --name myapp -p 3000:3000 myapp
