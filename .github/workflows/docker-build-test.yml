@@ -44,17 +44,29 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   merge:
-    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, 'Github apply')
+    if: |
+      github.event_name == 'issue_comment' &&
+      contains(github.event.comment.body, 'Github apply') &&
+      github.event.issue.pull_request != null &&
+      github.event.issue.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Add 'Merge in progress' comment
+      run: |
+        PR_NUMBER=$(jq --raw-output .issue.pull_request.number "$GITHUB_EVENT_PATH")
+        curl -s -H "Authorization: token $GITHUB_TOKEN" \
+        -X POST -d "{\"body\":\"Merge in progress...\"}" \
+        "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Merge pull request
       run: |
         PR_NUMBER=$(jq --raw-output .issue.pull_request.number "$GITHUB_EVENT_PATH")
-        BRANCH_NAME=$(jq --raw-output .issue.pull_request.head.ref "$GITHUB_EVENT_PATH")
         gh pr merge $PR_NUMBER --squash --delete-branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
