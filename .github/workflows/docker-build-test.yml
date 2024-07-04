@@ -1,15 +1,15 @@
-name: Docker Build and Test
+name: Docker Build, Test, and Merge
 
 on:
-  push:
-    branches:
-      - main  # À ajuster selon votre branche principale
   pull_request:
     branches:
       - main  # À ajuster selon votre branche principale
+  issue_comment:
+    types: [created]
 
 jobs:
-  build:
+  build-and-test:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
@@ -27,8 +27,34 @@ jobs:
 
     - name: Test application
       run: |
-        sleep 10  # Wait a bit for the application to start
+        sleep 10  # Attendez que l'application démarre
         curl --insecure https://0.0.0.0:3000 -vvv
 
     - name: Stop and remove the container
       run: docker stop myapp && docker rm myapp
+
+    - name: Comment on PR
+      if: success()
+      run: |
+        PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+        curl -s -H "Authorization: token $GITHUB_TOKEN" \
+        -X POST -d "{\"body\":\"Build and tests passed. If you want to merge, comment 'Github apply'.\"}" \
+        "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  merge:
+    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, 'Github apply')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Merge pull request
+      run: |
+        PR_NUMBER=$(jq --raw-output .issue.pull_request.number "$GITHUB_EVENT_PATH")
+        BRANCH_NAME=$(jq --raw-output .issue.pull_request.head.ref "$GITHUB_EVENT_PATH")
+        gh pr merge $PR_NUMBER --squash --delete-branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
