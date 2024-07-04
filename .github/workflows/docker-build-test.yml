@@ -1,0 +1,34 @@
+name: Docker Build and Test
+
+on:
+  push:
+    branches:
+      - main  # À ajuster selon votre branche principale
+  pull_request:
+    branches:
+      - main  # À ajuster selon votre branche principale
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build Docker image
+      run: docker build -t myapp .
+
+    - name: Test Docker image
+      run: |
+        docker run --rm myapp dotnet test /app/vulnerablelightapp/VulnerableLightApp.Tests/VulnerableLightApp.Tests.csproj
+
+    - name: Run container and check if it's running
+      run: docker run -d --name myapp -p 3000:3000 myapp
+      timeout-minutes: 2  # Timeout after 2 minutes
+
+    - name: Check if container is running
+      run: docker ps | grep myapp
+
+    - name: Stop and remove the container
+      run: docker stop myapp && docker rm myapp
