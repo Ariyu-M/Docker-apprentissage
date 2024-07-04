@@ -22,10 +22,11 @@ jobs:
     - name: Test Docker image
       run: |
         docker run -p 3000:3000 myapp
+      timeout-minutes: 1
 
     - name: Run container and check if it's running
       run: docker run -d --name myapp -p 3000:3000 myapp
-      timeout-minutes: 1  # Timeout after 1 minutes
+      timeout-minutes: 1  
 
     - name: Check if container is running
       run: docker ps | grep myapp
