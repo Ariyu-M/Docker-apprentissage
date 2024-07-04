@@ -3,7 +3,7 @@ name: Docker Build, Test, and Merge
 on:
   pull_request:
     branches:
-      - main  # À ajuster selon votre branche principale
+      - main
   issue_comment:
     types: [created]
 
@@ -27,7 +27,7 @@ jobs:
 
     - name: Test application
       run: |
-        sleep 10  # Attendez que l'application démarre
+        sleep 10
         curl --insecure https://0.0.0.0:3000 -vvv
 
     - name: Stop and remove the container
@@ -38,35 +38,24 @@ jobs:
       run: |
         PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
         curl -s -H "Authorization: token $GITHUB_TOKEN" \
-        -X POST -d "{\"body\":\"Build and tests passed. If you want to merge, comment 'Github apply'.\"}" \
-        "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments"
+          -X POST -d "{\"body\":\"Build and tests passed. If you want to merge, comment 'Github apply'.\"}" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   merge:
-    if: |
-      github.event_name == 'issue_comment' &&
-      contains(github.event.comment.body, 'Github apply') &&
-      github.event.issue.pull_request != null &&
-      github.event.issue.pull_request.base.ref == 'main'
+    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, 'Github apply')
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Add 'Merge in progress' comment
-      run: |
-        PR_NUMBER=$(jq --raw-output .issue.pull_request.number "$GITHUB_EVENT_PATH")
-        curl -s -H "Authorization: token $GITHUB_TOKEN" \
-        -X POST -d "{\"body\":\"Merge in progress...\"}" \
-        "https://api.github.com/repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Merge pull request
       run: |
-        PR_NUMBER=$(jq --raw-output .issue.pull_request.number "$GITHUB_EVENT_PATH")
-        gh pr merge $PR_NUMBER --squash --delete-branch
+        # Extract PR number from event payload
+        PR_NUMBER=$(jq --raw-output .issue.number "$GITHUB_EVENT_PATH")
+        # Merge the PR using a custom script (assuming you have 'merge-pr.sh' script in your repository)
+        ./merge-pr.sh $PR_NUMBER
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
