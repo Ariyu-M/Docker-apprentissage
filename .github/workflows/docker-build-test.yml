@@ -29,7 +29,7 @@ jobs:
       run: |
         sleep 10  # Wait a bit for the application to start
         RESPONSE=$(curl -k -s -o /dev/null -w "%{http_code}" https://0.0.0.0:3000 || echo $?)
-        if [ "$RESPONSE" -ne 60 ]; then
+        if [ "$RESPONSE" -ne 401 ]; then
           echo "Unexpected response: $RESPONSE"
           exit 1
         fi
