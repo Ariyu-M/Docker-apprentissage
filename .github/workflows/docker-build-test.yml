@@ -3,10 +3,10 @@ name: Docker Build and Test
 on:
   push:
     branches:
-      - main  # À ajuster selon votre branche principale
+      - main
   pull_request:
     branches:
-      - main  # À ajuster selon votre branche principale
+      - main
 
 jobs:
   build:
