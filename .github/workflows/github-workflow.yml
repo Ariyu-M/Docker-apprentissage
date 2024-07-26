@@ -3,10 +3,10 @@ name: Terraform Workflow
 on:
   push:
     branches:
-      - main
+      - Terraform
   pull_request:
     branches:
-      - main
+      - Terraform
 
 jobs:
   terraform:
