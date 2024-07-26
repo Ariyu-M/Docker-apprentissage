@@ -16,7 +16,7 @@ resource "docker_image" "web_app_image" {
   name = "web_app_image"
 
   build {
-    context = "/Bureau/Work/Formation/Cour/Exo-Terraform/FirstTime"
+    context = "."
   }
 }
 
