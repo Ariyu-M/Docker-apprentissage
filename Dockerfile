@@ -19,3 +19,4 @@ EXPOSE 4000
 COPY VulnerableLightApp-main /app/vulnerablelightapp
 WORKDIR /app/vulnerablelightapp
 CMD ["dotnet", "run" , "--url=https://0.0.0.0:3000" ]
+
